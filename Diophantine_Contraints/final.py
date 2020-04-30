@@ -102,8 +102,7 @@ def test_conversion(num, offset):
     print(str(num)  + " is " + convert_to_little_endian(18, 6) + " in binary little endian!\n")
 
 
-
-#TODO: I should split the equation first
+# Split the equation first
 def split_equation(equation):
     #! First split C1, C2, C3, and C
     C = []
@@ -174,13 +173,14 @@ def get_K_c(C):
 
 def get_b_i(C, i):
     C_bin = convert_to_little_endian(C,0)
-    if i > len(C_bin):
+    if i > len(C_bin):                      #NOTE:  I think this is K_c+1 scenario
         b_i = 0
     else:
         b_i = C_bin[i-1]
     return b_i
 
 # This list should already have the right padding
+# This takes the list with the numbers and picks the first bit out of each one
 def encoder(b_list):
     #Find the longest length
     #pad_max_len = max(b_list, key=len)
@@ -214,6 +214,58 @@ def decoder(b_list):
         tempBin = ''.join(reversed(each))
         result_List.append(int(tempBin, 2))
     return result_List
+
+#NOTE: A state in M is a pair of values [carry, i] where:
+#           -C_max <=  carry  <= C_max   and
+#           1 <=  i  <= K_c + 1
+
+def build_graph(input, equation):
+    carry = 0
+    i = 1
+    C,x = split_equation(equation)
+    K_c = get_K_c(input[0])
+    initial_state = [carry, i]
+    accepting_state = [0, (K_c + 1)]
+    state = initial_state
+    R=0
+    state_id = {}
+    G = Graph()
+    #state_id[0] = initial_state
+    #state_id[1] = accepting_state
+    #G.add_vertex({0:initial_state})
+    G.add_vertex(initial_state)
+    G.add_vertex(accepting_state)
+
+    last_index = 0
+
+    for index, a in enumerate(input):
+        carry = state[0]
+        i = state[1]
+        R = (C[0] * a[0]) + (C[1] * a[1]) + (C[2] * a[2]) + get_b_i(C[3], i) + carry
+
+        # if R is divisible by 2
+        if (R % 2) == 0:
+            # and carry = R/2        
+            if (R % 2) == 0:         #TODO: Check to make sure this is what he is asking
+                carry_prime = R / 2
+            
+            if i >= 1 and i <= K_c:
+                i_prime = i + 1
+            else:
+                i_prime = i
+            
+            next_state = [carry_prime, i_prime]
+            
+            
+            #If this input symbol met all the requirements then we can add it to the graph
+            #G.add_vertex({index+1:next_state})
+            G.add_vertex(next_state)
+            G.add_edge(state, next_state, a)
+            # Update our state
+            state = next_state
+            
+        #last_index = index
+    return G
 
 
 if __name__ == "__main__":
