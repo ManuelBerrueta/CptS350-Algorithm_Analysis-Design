@@ -2,7 +2,8 @@
 
 import networkx as nx
 DEBUG = 1
-TESTING = 1
+TESTING = 0
+ALGO_TEST = 1
 
 # CptS350 - Diophantine Constraints Using Labeled Graphs Final Exam Project
 
@@ -101,10 +102,70 @@ def test_conversion(num, offset):
     print(str(num)  + " is " + convert_to_little_endian(18, 6) + " in binary little endian!\n")
 
 
-# This gets you the C_max 
-#! ISN'T This always the same?
+
+#TODO: I should split the equation first
+def split_equation(equation):
+    #! First split C1, C2, C3, and C
+    C = []
+    if equation[0] == '+':
+        C.append(int(equation[1]))
+    elif equation[0] == '-':
+        C.append((-1) * int(equation[1]))
+    else:
+        print(">>>>Equation is in the wrong format")
+    
+    if equation[3] == '+':
+        C.append(int(equation[4]))
+    elif equation[3] == '-':
+        C.append((-1) * int(equation[4]))
+    else:
+        print(">>>>Equation is in the wrong format")
+
+    if equation[6] == '+':
+        C.append(int(equation[7]))
+    elif equation[6] == '-':
+        C.append((-1) * int(equation[7]))
+    else:
+        print(">>>>Equation is in the wrong format")
+
+    if equation[9] == '+':
+        C.append(int(equation[10]))
+    elif equation[9] == '-':
+        print(">>>>>> ERROR: C should not be negative!\n")
+        print("\t>>>>>> ERROR: C should not be negative!\n")
+        C.append((-1) * int(equation[10]))
+    else:
+        print(">>>>Equation is in the wrong format")
+
+    #! Split all the x's
+    x = []
+    x.append(equation[2])
+    x.append(equation[5])
+    x.append(equation[8])
+
+    if ALGO_TEST:
+        print(f"C={C}")
+        print(f"x={x}")
+
+    return C, x
+
+    
+#                      1    2     3     4    5     6     7     8    9    10   11   12   13   
+#    tempEquation = ["+", "C1", "x1", "+", "C2", "x2", "+", "C3", "x3", "+", "C", "=", "0"]
+
 def C_max(equation):
-    pass
+    C,x = split_equation(equation)
+    Cmax = 0
+    #Here we loop to find the max
+    for d1 in range(2):
+        for d2 in range(2):
+            for d3 in range(2):
+                for d in range(2):
+                    tempSum = abs((C[0] * d1) + (C[1] * d2) + (C[2] * d3) + d)
+                    if tempSum > Cmax:
+                        Cmax = tempSum
+    return Cmax
+
 
 
 def get_K_c(C):
@@ -146,10 +207,20 @@ def encoder(b_list):
     return newb_list
 
 
+def decoder(b_list):
+    tempBin = ''
+    result_List = []
+    for each in b_list:
+        tempBin = ''.join(reversed(each))
+        result_List.append(int(tempBin, 2))
+    return result_List
+
+
 if __name__ == "__main__":
     #Testing only
     if TESTING:
-        myTestList = ['1011', '0101', '0001']
+        myTestList = ['101', '011', '100', '110']
+        resultList = []
         test_conversion(18,6)
         print(f"Testing with number 18: bin={num_to_bin(18,0)} | Little Endian={convert_to_little_endian(18,0)}")
         print(f"Testing: Kc={get_K_c(18)} | b_i(18,6)={get_b_i(18,6)} and b_i(18,4)={get_b_i(18,4)}")
@@ -163,9 +234,17 @@ if __name__ == "__main__":
         print("\n")
         print(convert_to_little_endian(13,5)) #This will work, but I need the padding before hand
 
-        print(encoder(myTestList))
+        resultList = encoder(myTestList)
+        print(resultList)
+        result_intList = decoder(resultList)
+        print(result_intList)
+
+    if ALGO_TEST:
+        test_equation = ["-", "3", "x1", "-", "0", "x2", "+", "4", "x3", "+", "17", "=", "0"]
+        my_Cmax = C_max(test_equation)
+        print(my_Cmax) # = 5
 
     #                1    2     3     4    5     6     7     8    9    10   11   12   13   
-    tempEquation = ["+", "C1", "x1", "+", "C2", "x2", "+", "C3", "x3", "+", "C", "=", "0"]
+    templateEquation = ["+", "C1", "x1", "+", "C2", "x2", "+", "C3", "x3", "+", "C", "=", "0"]
 
     
