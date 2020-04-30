@@ -9,14 +9,15 @@ ALGO_TEST = 1
 
 
 class Vertex:
-    def __init__(self, node):
+    def __init__(self, node, payload):
         self.id = node
+        self.payload = payload
         self.adjacent = {}
 
     def __str__(self):
         return str(self.id) + ' adjacent: ' + str([x.id for x in self.adjacent])
 
-    def add_neighbor(self, neighbor, weight=0):
+    def add_neighbor(self, neighbor, weight=0): #Here weight will be our a1, a2, a3
         self.adjacent[neighbor] = weight
 
     def get_connections(self):
@@ -28,6 +29,10 @@ class Vertex:
     def get_weight(self, neighbor):
         return self.adjacent[neighbor]
 
+    def get_payload(self):
+        return self.payload
+
+
 class Graph:
     def __init__(self):
         self.vert_dict = {}
@@ -36,9 +41,9 @@ class Graph:
     def __iter__(self):
         return iter(self.vert_dict.values())
 
-    def add_vertex(self, node):
+    def add_vertex(self, node, payload):
         self.num_vertices = self.num_vertices + 1
-        new_vertex = Vertex(node)
+        new_vertex = Vertex(node, payload)
         self.vert_dict[node] = new_vertex
         return new_vertex
 
@@ -48,14 +53,14 @@ class Graph:
         else:
             return None
 
-    def add_edge(self, frm, to, cost = 0):
+    def add_edge(self, frm, to, symbol):
         if frm not in self.vert_dict:
             self.add_vertex(frm)
         if to not in self.vert_dict:
             self.add_vertex(to)
 
-        self.vert_dict[frm].add_neighbor(self.vert_dict[to], cost)
-        self.vert_dict[to].add_neighbor(self.vert_dict[frm], cost)
+        self.vert_dict[frm].add_neighbor(self.vert_dict[to], symbol)
+        self.vert_dict[to].add_neighbor(self.vert_dict[frm], symbol)
 
     def get_vertices(self):
         return self.vert_dict.keys()
@@ -223,7 +228,7 @@ def build_graph(input, equation):
     carry = 0
     i = 1
     C,x = split_equation(equation)
-    K_c = get_K_c(input[0])
+    K_c = get_K_c(C[3]) # K_c of C the constant
     initial_state = [carry, i]
     accepting_state = [0, (K_c + 1)]
     state = initial_state
@@ -233,15 +238,19 @@ def build_graph(input, equation):
     #state_id[0] = initial_state
     #state_id[1] = accepting_state
     #G.add_vertex({0:initial_state})
-    G.add_vertex(initial_state)
-    G.add_vertex(accepting_state)
+    
+    G.add_vertex(0, initial_state)
+    G.add_vertex(1, accepting_state)
+    last_state_id = 0
 
     last_index = 0
 
     for index, a in enumerate(input):
         carry = state[0]
         i = state[1]
-        R = (C[0] * a[0]) + (C[1] * a[1]) + (C[2] * a[2]) + get_b_i(C[3], i) + carry
+        R = (C[0] * int(a[0])) + (C[1] * int(a[1])) + (C[2] * int(a[2])) + int(get_b_i(C[3], i)) + carry
+
+        curent_state_id = index + 2
 
         # if R is divisible by 2
         if (R % 2) == 0:
@@ -258,14 +267,24 @@ def build_graph(input, equation):
             
             
             #If this input symbol met all the requirements then we can add it to the graph
-            #G.add_vertex({index+1:next_state})
-            G.add_vertex(next_state)
-            G.add_edge(state, next_state, a)
+            #NOTE: Add  this next_state as a vertex/node and the carry' and i'
+            G.add_vertex(curent_state_id, next_state)
+            #TODO: modify cost to be the string
+            G.add_edge(last_state_id, curent_state_id, a)
             # Update our state
             state = next_state
+            last_state_id = index + 2
             
         #last_index = index
     return G
+
+
+def input_gen(max, padding):
+    input_list = []
+    for i in range(max):
+        input_list.append(convert_to_little_endian(i, padding))
+
+    return input_list
 
 
 if __name__ == "__main__":
@@ -295,6 +314,11 @@ if __name__ == "__main__":
         test_equation = ["-", "3", "x1", "-", "0", "x2", "+", "4", "x3", "+", "17", "=", "0"]
         my_Cmax = C_max(test_equation)
         print(my_Cmax) # = 5
+
+        #Generate input list
+        input_list = input_gen(8,3)
+        G = build_graph(input_list, test_equation)
+        print(f"G.getpayload of 0, initial_state = {G.get_vertex(0).get_payload()}")
 
     #                1    2     3     4    5     6     7     8    9    10   11   12   13   
     templateEquation = ["+", "C1", "x1", "+", "C2", "x2", "+", "C3", "x3", "+", "C", "=", "0"]
