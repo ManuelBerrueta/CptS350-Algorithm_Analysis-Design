@@ -320,6 +320,23 @@ if __name__ == "__main__":
         G = build_graph(input_list, test_equation)
         print(f"G.getpayload of 0, initial_state = {G.get_vertex(0).get_payload()}")
 
+        T1_test_1 = ["+", "3", "x1", "-", "2", "x2", "+", "1", "x3", "+", "5", "=", "0"]
+        T1_test_2 = ["+", "6", "x1", "-", "4", "x2", "+", "2", "x3", "+", "9", "=", "0"]
+
+        M1 = build_graph(input_list, T1_test_1)
+        M2 = build_graph(input_list, T1_test_2)
+
+        #M = cartesian_product(M1, M2)
+
+        T2_test_1 = ["+", "3", "x1", "-", "2", "x2", "-", "1", "x3", "+", "3", "=", "0"]
+        T2_test_2 = ["+", "6", "x1", "-", "4", "x2", "+", "1", "x3", "+", "3", "=", "0"]
+
+        M1 = build_graph(input_list, T2_test_1)
+        M2 = build_graph(input_list, T2_test_2)
+        #M = cartesian_product(M1, M2)
+        
+
+
     #                1    2     3     4    5     6     7     8    9    10   11   12   13   
     templateEquation = ["+", "C1", "x1", "+", "C2", "x2", "+", "C3", "x3", "+", "C", "=", "0"]
 
