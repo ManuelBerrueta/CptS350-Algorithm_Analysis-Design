@@ -211,7 +211,7 @@ def encoder(b_list):
             newb_list[i] = newb_list[i] + each_b
     return newb_list
 
-
+#! Final Step?!
 def decoder(b_list):
     tempBin = ''
     result_List = []
@@ -248,6 +248,12 @@ def build_graph(input, equation):
     for index, a in enumerate(input):
         carry = state[0]
         i = state[1]
+        if ALGO_TEST:
+            print(f"a={a}")
+            print(f"a[0]={a[0]}")
+            print(f"a[1]={a[1]}")
+            print(f"a[2]={a[2]}")
+
         R = (C[0] * int(a[0])) + (C[1] * int(a[1])) + (C[2] * int(a[2])) + int(get_b_i(C[3], i)) + carry
 
         curent_state_id = index + 2
@@ -255,8 +261,7 @@ def build_graph(input, equation):
         # if R is divisible by 2
         if (R % 2) == 0:
             # and carry = R/2        
-            if (R % 2) == 0:         #TODO: Check to make sure this is what he is asking
-                carry_prime = R / 2
+            carry_prime = R / 2
             
             if i >= 1 and i <= K_c:
                 i_prime = i + 1
@@ -285,6 +290,42 @@ def input_gen(max, padding):
         input_list.append(convert_to_little_endian(i, padding))
 
     return input_list
+
+def print_graphs(M1, M2):
+    print("> >> >>> >>>> >>>>> >>>>>> {  M1  } <<<<<< <<<<< <<<< <<< << <")
+    for v1 in M1:
+        for neighbor in v1.get_connections():
+            print(f"Vertix={v1.id}---Edge={v1.get_weight(neighbor)}----neighbor={neighbor.id}")
+    print("> >> >>> >>>> >>>>> >>>>>> {  M2  } <<<<<< <<<<< <<<< <<< << <")
+    for v2 in M2:
+        for neighbor_2 in v2.get_connections():
+            print(f"Vertix={v2.id}---Edge={v2.get_weight(neighbor_2)}----neighbor={neighbor_2.id}")
+
+
+def cartesian_product(M1, M2, input):
+    #TOdo: we just check to see if the input is an edge from the vertex in each graph,
+    #if it is then we add it to our new graph
+    M = Graph()
+    print("> >> >>> >>>> >>>>> >>>>>> {  M1  } <<<<<< <<<<< <<<< <<< << <")
+    for v1 in M1:
+        for neighbor in v1.get_connections():
+            print(f"Vertix={v1.id}---Edge={v1.get_weight(neighbor)}----neighbor={neighbor.id}")
+    print("> >> >>> >>>> >>>>> >>>>>> {  M2  } <<<<<< <<<<< <<<< <<< << <")
+    for v2 in M2:
+        for neighbor_2 in v2.get_connections():
+            print(f"Vertix={v2.id}---Edge={v2.get_weight(neighbor_2)}----neighbor={neighbor_2.id}")
+        #neighbor, v1_l = v1.get_weight()
+        #for v2 in M2:
+        #    for symbol in input:
+                
+            
+            
+            #neighbor_2, v2_l = v2.get_weight()
+            #print(f"v1_l={v1_l}")
+            #print(f"v2_l={v1_l}")
+            #if v1_l == v2_l:
+            #    print(f"v1_l == v2_l: {v1_l}")
+
 
 
 if __name__ == "__main__":
@@ -323,18 +364,18 @@ if __name__ == "__main__":
         T1_test_1 = ["+", "3", "x1", "-", "2", "x2", "+", "1", "x3", "+", "5", "=", "0"]
         T1_test_2 = ["+", "6", "x1", "-", "4", "x2", "+", "2", "x3", "+", "9", "=", "0"]
 
-        M1 = build_graph(input_list, T1_test_1)
-        M2 = build_graph(input_list, T1_test_2)
+        M1_test = build_graph(input_list, T1_test_1)
+        M2_test = build_graph(input_list, T1_test_2)
 
-        #M = cartesian_product(M1, M2)
+        #M = cartesian_product(M1_test, M2_test, input_list)
 
         T2_test_1 = ["+", "3", "x1", "-", "2", "x2", "-", "1", "x3", "+", "3", "=", "0"]
         T2_test_2 = ["+", "6", "x1", "-", "4", "x2", "+", "1", "x3", "+", "3", "=", "0"]
 
         M1 = build_graph(input_list, T2_test_1)
         M2 = build_graph(input_list, T2_test_2)
-        #M = cartesian_product(M1, M2)
-        
+        M = cartesian_product(M1, M2, input_list)
+
 
 
     #                1    2     3     4    5     6     7     8    9    10   11   12   13   
