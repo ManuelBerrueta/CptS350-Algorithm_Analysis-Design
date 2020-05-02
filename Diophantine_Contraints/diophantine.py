@@ -143,6 +143,8 @@ def cartesian_product(M1, M2):
                 M.append( [ [each_conn_M1[0], each_conn_M1[1]], [each_conn_M1[2], each_conn_M1[3]], [each_conn_M2[0], each_conn_M2[1]], [each_conn_M2[2], each_conn_M2[3]], a ])
     return M
 
+def DFS(M):
+    pass
 
 if __name__ == "__main__":
     T1_test_1 = ["+", "3", "x1", "-", "2", "x2", "+", "1", "x3", "+", "5", "=", "0"]
