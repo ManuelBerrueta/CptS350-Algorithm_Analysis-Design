@@ -129,57 +129,85 @@ def build_graph(equation):
                                     #M.append([carry, i, carry_prime, i_prime, a1, a2, a3])
                                     #Testing for possible easier processing
                                     a = str(a1) + str(a2) + str(a3)
-                                    M.append([carry, i, carry_prime, i_prime, a])
+                                    M.append([carry, i, carry_prime, i_prime, a]) 
 
-    return M
+    return M, initial_state, accepting_state
 
 def cartesian_product(M1, M2):
     M = []
     for each_conn_M1 in M1:
         for each_conn_M2 in M2:
             # if they have the same common edge, they are reading the same symbol
+            # [4] is the edge index which is a combition of a1,a2,a3 where a1,a2,a3 are {0,1}
             if each_conn_M1[4] == each_conn_M2[4]:
                 a = each_conn_M1[4] #We could pick each_conn_M2[4] since is the same thing
-                M.append( [ [each_conn_M1[0], each_conn_M1[1]], [each_conn_M1[2], each_conn_M1[3]], [each_conn_M2[0], each_conn_M2[1]], [each_conn_M2[2], each_conn_M2[3]], a ])
-    return M
+                #TODO: Added this 0 after 'a' to use for visited....but I am not sure this will work for DFS
+                M.append( [ [each_conn_M1[0], each_conn_M1[1]], [each_conn_M1[2], each_conn_M1[3]], [each_conn_M2[0], each_conn_M2[1]], [each_conn_M2[2], each_conn_M2[3]], a, 0 ])
+    return M              # [            M1  State           ]  [       M1 Neighbor State       ]  [            M2  State           ]  [       M2  Neighbor State       ]  a  Seen
 
-def DFS(M):
-    pass
+stack = []
+def DFS(G, v, accepting_state):
+    global stack
+    # Label as seen
+    v[5] = 1
+    for edge in G:
+        if v[1] == edge[0][1] and v[2] == edge[0][2] :
+            #Mark it as visited
+            if edge[0][5] != 1:
+                stack.append(v[4])
+                if edge[0][1] == accepting_state:
+                    return
+                else:
+                    DFS(G, edge[0][2], accepting_state)
+        else:
+            return
+    
 
 if __name__ == "__main__":
     T1_test_1 = ["+", "3", "x1", "-", "2", "x2", "+", "1", "x3", "+", "5", "=", "0"]
     T1_test_2 = ["+", "6", "x1", "-", "4", "x2", "+", "2", "x3", "+", "9", "=", "0"]
 
-    M1_test = build_graph(T1_test_1)
+    M1_test, initial_state_M1, accepting_state_M1 = build_graph(T1_test_1)
     #print("\n> >> >>> >>>> >>>>> >>>>>> {  M1  } <<<<<< <<<<< <<<< <<< << <")
     #print(M1_test)
-    M2_test = build_graph(T1_test_2)
+    M2_test, initial_state_M2, accepting_state_M2  = build_graph(T1_test_2)
     #print("\n> >> >>> >>>> >>>>> >>>>>> {  M2  } <<<<<< <<<<< <<<< <<< << <")
     #print(M2_test)
     #M = cartesian_product(M1_test, M2_test, input_list)
-    M_test = cartesian_product(M1_test, M2_test)
-    with open("M__test_output.txt", "w") as outfile:
-        outfile.write(str(M_test))
+    #M_test = cartesian_product(M1_test, M2_test)
+    #with open("M__test_output.txt", "w") as outfile:
+    #    outfile.write(str(M_test))
 
 
     T2_test_1 = ["+", "3", "x1", "-", "2", "x2", "-", "1", "x3", "+", "3", "=", "0"]
     T2_test_2 = ["+", "6", "x1", "-", "4", "x2", "+", "1", "x3", "+", "3", "=", "0"]
 
-    M1 = build_graph(T2_test_1)
+    M1, initial_state_M1, accepting_state_M1 = build_graph(T2_test_1)
     print("\n> >> >>> >>>> >>>>> >>>>>> {  M1  } <<<<<< <<<<< <<<< <<< << <")
-    print(M1_test)
-    M2 = build_graph(T2_test_2)
+    #print(M1_test)
+    print(f"M1 length={len(M1)}")
+    
+    M2, initial_state_M2, accepting_state_M2 = build_graph(T2_test_2)
     print("\n> >> >>> >>>> >>>>> >>>>>> {  M2  } <<<<<< <<<<< <<<< <<< << <")
-    print(M2_test)
+    #print(M2_test)
+    print(f"M2 length={len(M2)}")
 
     M = cartesian_product(M1, M2)
 
     print("\n\t> >> >>> >>>> >>>>> >>>>>> {  M = M1 x M2  } <<<<<< <<<<< <<<< <<< << <")
-    print(M)
+    #print(M)
+    print(f"M length={len(M)}")
 
+    M_initial_state = [initial_state_M1, initial_state_M2]
+    M_accepting_state = [accepting_state_M1, accepting_state_M2]
+    M_v = [M_initial_state]
     with open("M_output.txt", "w") as outfile:
         outfile.write(str(M))
 
+    #need to pass in initial state and may be accepting_state
+    DFS(M, M_v, M_accepting_state)
+
+    print(stack)
 
 
 
