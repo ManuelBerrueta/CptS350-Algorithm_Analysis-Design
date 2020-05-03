@@ -142,25 +142,29 @@ def cartesian_product(M1, M2):
             if each_conn_M1[4] == each_conn_M2[4]:
                 a = each_conn_M1[4] #We could pick each_conn_M2[4] since is the same thing
                 #TODO: Added this 0 after 'a' to use for visited....but I am not sure this will work for DFS
-                M.append( [ [each_conn_M1[0], each_conn_M1[1]], [each_conn_M1[2], each_conn_M1[3]], [each_conn_M2[0], each_conn_M2[1]], [each_conn_M2[2], each_conn_M2[3]], a, 0 ])
-    return M              # [            M1  State           ]  [       M1 Neighbor State       ]  [            M2  State           ]  [       M2  Neighbor State       ]  a  Seen
+                #M.append( [ [each_conn_M1[0], each_conn_M1[1]], [each_conn_M1[2], each_conn_M1[3]], [each_conn_M2[0], each_conn_M2[1]], [each_conn_M2[2], each_conn_M2[3]], a, 0 ])
+                M.append( [ [each_conn_M1[0], each_conn_M1[1]], [each_conn_M2[0], each_conn_M2[1]], [each_conn_M1[2], each_conn_M1[3]], [each_conn_M2[2], each_conn_M2[3]], a, 0 ])                
+    return M              # [            M1  State           ]  [       M2  State                ]  [      M1 Neighbor State         ]  [       M2  Neighbor State       ]  a  Seen
 
 stack = []
-def DFS(G, v, accepting_state):
+def DFS(G, v, accepting):
     global stack
-    # Label as seen
-    v[5] = 1
+   
     for edge in G:
-        if v[1] == edge[0][1] and v[2] == edge[0][2] :
+        if v[0] == edge[0] and v[1] == edge[1]: # if this vertex in this edge match
             #Mark it as visited
-            if edge[0][5] != 1:
-                stack.append(v[4])
-                if edge[0][1] == accepting_state:
-                    return
+            if edge[5] != 1:
+                edge[5] = 1
+                stack.append(edge[4])
+                if accepting[0] == edge[2] and accepting[1] == edge[3]:
+                    return True
                 else:
-                    DFS(G, edge[0][2], accepting_state)
-        else:
-            return
+                    result = DFS(G, [edge[2], edge[3]], accepting)
+                    if result:
+                        return True
+                    else:
+                        stack.pop(-1)
+    return False 
     
 
 if __name__ == "__main__":
@@ -200,12 +204,18 @@ if __name__ == "__main__":
 
     M_initial_state = [initial_state_M1, initial_state_M2]
     M_accepting_state = [accepting_state_M1, accepting_state_M2]
-    M_v = [M_initial_state]
     with open("M_output.txt", "w") as outfile:
         outfile.write(str(M))
 
     #need to pass in initial state and may be accepting_state
-    DFS(M, M_v, M_accepting_state)
+    found = DFS(M, M_initial_state, M_accepting_state)
+
+    if found:
+        pass
+        #print("FOUND")
+        #todo: the decoder
+    else:
+        print("There is no solution")
 
     print(stack)
 
