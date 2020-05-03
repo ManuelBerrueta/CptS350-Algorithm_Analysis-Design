@@ -1,9 +1,12 @@
+#!/usr/bin/env python
+# CptS 350: Design and Analysis of Algorithms
+# Solving Linear Diophantine constraints using labeled graphs project
+#                       by Manuel Berrueta
 
-DEBUG = 1
+DEBUG = 0
 TESTING = 0
-ALGO_TEST = 1
+ALGO_TEST = 0
 INPUT_TEST = 0
-
 
 def num_to_bin(num, padding):
     tempNum = "{0:b}".format(num)
@@ -63,7 +66,6 @@ def split_equation(equation):
 
     return C, x
 
-
 def get_K_c(C):
     if C == 0:
         return 0
@@ -99,7 +101,31 @@ def get_C_max(equation):
                         Cmax = tempSum
     return Cmax
 
+# This takes the list with the numbers and picks the first bit out of each one
+def encoder(b_list):
+    # Find the longest length. That is check all the binary represented postive
+    # integers in this list, and return the lenght of the longest represenation
+    # i.e. 1 in bin is only 1, thus 1 digit, however 4 in bin is 100, thus 3 digits.
+    newb_list = ['']  * len((b_list[0]))
+
+    for eachItem in b_list:
+        tempStr = ''
+        for i, each_b in enumerate(eachItem):
+            newb_list[i] = newb_list[i] + each_b
+    return newb_list
+
+#! Final Step
+def decoder(b_list):
+    tempBin = ''
+    result_List = []
+    for each in b_list:
+        tempBin = ''.join(reversed(each))
+        result_List.append(int(tempBin, 2))
+    return result_List
+
+
 #! Algorithm 1
+# Each entry in M1 or M2 is an edge [carry, i, carry_prime, i_prime, a]
 def build_graph(equation):
     C, x = split_equation(equation)
     K_c = get_K_c(C[3]) # K_c of C the constant
@@ -133,9 +159,14 @@ def build_graph(equation):
 
     return M, initial_state, accepting_state
 
+#Each entry in M cartesian product of M1 x M2 is an edge:
+#   [carry1, i1], [carry2, i2] ----- a ----> [carryPrime1, iPrime1], [carryPrime2, iPrime2]
+#   [ M1 start ], [ M2 start ] (a1, a2, a3)
+# edge  0             1         4                2                       3
+# DFA Cross Product Reference: https://scanftree.com/automata/dfa-cross-product-property
 def cartesian_product(M1, M2):
     M = []
-    for each_conn_M1 in M1:
+    for each_conn_M1 in M1: #TODO: Change each_conn_M1 to M1_edge or edge_M1
         for each_conn_M2 in M2:
             # if they have the same common edge, they are reading the same symbol
             # [4] is the edge index which is a combition of a1,a2,a3 where a1,a2,a3 are {0,1}
@@ -164,10 +195,33 @@ def DFS(G, v, accepting):
                         return True
                     else:
                         stack.pop(-1)
-    return False 
-    
+    return False
+
+def print_LD_Q(equation, result, found):
+    C, x = split_equation(equation)
+    if found:
+        print(f"{C[0]} * {result[0]} + {C[1]} * {result[1]} + {C[2]} * {result[2]} + {C[4]} = ", end='')
+    else:
+        print(f"{C[0]} * {result[0]} + {C[1]} * {result[1]} + {C[2]} * {result[2]} + {C[4]} != ", end='')
+    print(f"{C[0] * result[0] + C[1] * result[1] + C[2] * result[2] + C[4]}")
+
+def check_LD_Q(found, stack):
+    # Test this Linear Diophantine instance Q, to see if it has positive
+    # integer solutions.
+    if found:
+        print("\n================$[ Path Found ]$================")
+        print(f">>>>> Edges:   {stack}")
+        encoded_binNums = encoder(stack)
+        print(f">>>>> Encoded: {encoded_binNums}")
+        result = decoder(encoded_binNums)
+        print(f">>>>> Decoded: {result}")
+        print(f"Thus result of this LD is: {result}\n")
+    else:
+        print("\n----------------{ No Path Found }----------------")
+        print(">>>>>> There is no positive integer solution to this system <<<<<<\n")
 
 if __name__ == "__main__":
+    #NOTE: The equations have to be passed in as strings in list for as below:
     T1_test_1 = ["+", "3", "x1", "-", "2", "x2", "+", "1", "x3", "+", "5", "=", "0"]
     T1_test_2 = ["+", "6", "x1", "-", "4", "x2", "+", "2", "x3", "+", "9", "=", "0"]
 
@@ -177,49 +231,37 @@ if __name__ == "__main__":
     M2_test, initial_state_M2, accepting_state_M2  = build_graph(T1_test_2)
     #print("\n> >> >>> >>>> >>>>> >>>>>> {  M2  } <<<<<< <<<<< <<<< <<< << <")
     #print(M2_test)
-    #M = cartesian_product(M1_test, M2_test, input_list)
-    #M_test = cartesian_product(M1_test, M2_test)
-    #with open("M__test_output.txt", "w") as outfile:
-    #    outfile.write(str(M_test))
 
+    print(f"\nT1 Test with:\n\t\t{T1_test_1}\n\t\t{T1_test_2}")
+    M_t1 = cartesian_product(M1_test, M2_test)
+    M_initial_state = [initial_state_M1, initial_state_M2]
+    M_accepting_state = [accepting_state_M1, accepting_state_M2]
 
+    found = DFS(M_t1, M_initial_state, M_accepting_state)
+    check_LD_Q(found, stack)
+
+    #! T2 Test:
     T2_test_1 = ["+", "3", "x1", "-", "2", "x2", "-", "1", "x3", "+", "3", "=", "0"]
     T2_test_2 = ["+", "6", "x1", "-", "4", "x2", "+", "1", "x3", "+", "3", "=", "0"]
 
     M1, initial_state_M1, accepting_state_M1 = build_graph(T2_test_1)
-    print("\n> >> >>> >>>> >>>>> >>>>>> {  M1  } <<<<<< <<<<< <<<< <<< << <")
+    #print("\n> >> >>> >>>> >>>>> >>>>>> {  M1  } <<<<<< <<<<< <<<< <<< << <")
     #print(M1_test)
-    print(f"M1 length={len(M1)}")
+    #print(f"M1 length={len(M1)}")
     
     M2, initial_state_M2, accepting_state_M2 = build_graph(T2_test_2)
-    print("\n> >> >>> >>>> >>>>> >>>>>> {  M2  } <<<<<< <<<<< <<<< <<< << <")
+    #print("\n> >> >>> >>>> >>>>> >>>>>> {  M2  } <<<<<< <<<<< <<<< <<< << <")
     #print(M2_test)
-    print(f"M2 length={len(M2)}")
+    #print(f"M2 length={len(M2)}")
 
+
+    print(f"\nT2 Test with:\n\t\t{T2_test_1}\n\t\t{T2_test_2}")
     M = cartesian_product(M1, M2)
-
-    print("\n\t> >> >>> >>>> >>>>> >>>>>> {  M = M1 x M2  } <<<<<< <<<<< <<<< <<< << <")
+    #print("\n\t> >> >>> >>>> >>>>> >>>>>> {  M = M1 x M2  } <<<<<< <<<<< <<<< <<< << <")
     #print(M)
-    print(f"M length={len(M)}")
+    #print(f"M length={len(M)}")
 
     M_initial_state = [initial_state_M1, initial_state_M2]
     M_accepting_state = [accepting_state_M1, accepting_state_M2]
-    with open("M_output.txt", "w") as outfile:
-        outfile.write(str(M))
-
-    #need to pass in initial state and may be accepting_state
     found = DFS(M, M_initial_state, M_accepting_state)
-
-    if found:
-        pass
-        #print("FOUND")
-        #todo: the decoder
-    else:
-        print("There is no solution")
-
-    print(stack)
-
-
-
-# Each entry in M1,M2 is [carry, i, carry_prime, i_prime, a1, a2, a3]
-
+    check_LD_Q(found, stack)
