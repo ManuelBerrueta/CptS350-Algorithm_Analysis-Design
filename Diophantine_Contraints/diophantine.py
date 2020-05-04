@@ -126,6 +126,7 @@ def decoder(b_list):
 
 #! Algorithm 1
 # Each entry in M1 or M2 is an edge [carry, i, carry_prime, i_prime, a]
+#    where a represents a1, a2, a3 ∈ {0,1}
 def build_graph(equation):
     C, x = split_equation(equation)
     K_c = get_K_c(C[3]) # K_c of C the constant
@@ -233,7 +234,13 @@ if __name__ == "__main__":
     #print(M2_test)
 
     print(f"\nT1 Test with:\n\t\t{T1_test_1}\n\t\t{T1_test_2}")
+    
     M_t1 = cartesian_product(M1_test, M2_test)
+
+    print(f"Length of M1 in T1: {len(M1_test)}")
+    print(f"Length of M2 in T1: {len(M2_test)}")
+    print(f"Length of M Cartesian Product of M1 x M2 : {len(M_t1)}")
+    
     M_initial_state = [initial_state_M1, initial_state_M2]
     M_accepting_state = [accepting_state_M1, accepting_state_M2]
 
@@ -256,10 +263,15 @@ if __name__ == "__main__":
 
 
     print(f"\nT2 Test with:\n\t\t{T2_test_1}\n\t\t{T2_test_2}")
+    
     M = cartesian_product(M1, M2)
     #print("\n\t> >> >>> >>>> >>>>> >>>>>> {  M = M1 x M2  } <<<<<< <<<<< <<<< <<< << <")
     #print(M)
     #print(f"M length={len(M)}")
+
+    print(f"Length of M1 in T2: {len(M1)}")
+    print(f"Length of M2 in T2: {len(M2)}")
+    print(f"Length of M Cartesian Product of M1 x M2 : {len(M)}")
 
     M_initial_state = [initial_state_M1, initial_state_M2]
     M_accepting_state = [accepting_state_M1, accepting_state_M2]
