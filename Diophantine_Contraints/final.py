@@ -4,6 +4,7 @@ import networkx as nx
 DEBUG = 1
 TESTING = 0
 ALGO_TEST = 1
+INPUT_TEST = 0
 
 # CptS350 - Diophantine Constraints Using Labeled Graphs Final Exam Project
 
@@ -157,7 +158,7 @@ def split_equation(equation):
 #                      1    2     3     4    5     6     7     8    9    10   11   12   13   
 #    tempEquation = ["+", "C1", "x1", "+", "C2", "x2", "+", "C3", "x3", "+", "C", "=", "0"]
 
-def C_max(equation):
+def get_C_max(equation):
     C,x = split_equation(equation)
     Cmax = 0
     #Here we loop to find the max
@@ -173,15 +174,29 @@ def C_max(equation):
 
 
 def get_K_c(C):
-    return len(convert_to_little_endian(C, 0))
+    if C == 0:
+        return 0
+    else:
+        return len(convert_to_little_endian(C, 0))
 
 
 def get_b_i(C, i):
     C_bin = convert_to_little_endian(C,0)
-    if i > len(C_bin):                      #NOTE:  I think this is K_c+1 scenario
+    K_c = get_K_c(C)
+    #if i > len(C_bin):                      #NOTE:  I think this is K_c+1 scenario
+    #b_i = 0
+    #else:
+    #    b_i = C_bin[i-1]
+    if ALGO_TEST:
+        if i == 0:
+            print("\n\n\t\t>>>>>>>>>>> [ Error with i in get_b_i, i=0 \n\n")
+
+    if i == (K_c + 1):
         b_i = 0
-    else:
+    elif (i >= 1) and (i <= K_c):
         b_i = C_bin[i-1]
+    else:
+        print("\n\n\t\t>>>>>>>>>>> [ Error with i in get_b_i \n\n")
     return b_i
 
 # This list should already have the right padding
@@ -248,7 +263,7 @@ def build_graph(input, equation):
     for index, a in enumerate(input):
         carry = state[0]
         i = state[1]
-        if ALGO_TEST:
+        if INPUT_TEST:
             print(f"a={a}")
             print(f"a[0]={a[0]}")
             print(f"a[1]={a[1]}")
@@ -279,6 +294,9 @@ def build_graph(input, equation):
             # Update our state
             state = next_state
             last_state_id = index + 2
+        #else:
+            #state = next_state #state stays the same
+        #    last_state_id = index + 2
             
         #last_index = index
     return G
@@ -292,28 +310,42 @@ def input_gen(max, padding):
     return input_list
 
 def print_graphs(M1, M2):
-    print("> >> >>> >>>> >>>>> >>>>>> {  M1  } <<<<<< <<<<< <<<< <<< << <")
+    print("\n> >> >>> >>>> >>>>> >>>>>> {  M1  } <<<<<< <<<<< <<<< <<< << <")
+    print("\n\t>>>>>> Connections")
     for v1 in M1:
         for neighbor in v1.get_connections():
-            print(f"Vertix={v1.id}---Edge={v1.get_weight(neighbor)}----neighbor={neighbor.id}")
-    print("> >> >>> >>>> >>>>> >>>>>> {  M2  } <<<<<< <<<<< <<<< <<< << <")
+            print(f"\tVertix={v1.get_id()} ======> Edge={v1.get_weight(neighbor)} ======> neighbor={neighbor.get_id()}")
+    print("\n\t >>>>>> Neighbors")
+    for v1 in M1:
+        print(f"\tM1.vert_dict[{v1.get_id()}]={M1.vert_dict[v1.get_id()]}")
+    
+    
+    print("\n> >> >>> >>>> >>>>> >>>>>> {  M2  } <<<<<< <<<<< <<<< <<< << <")
+    print("\n\t >>>>>> Connections")
     for v2 in M2:
         for neighbor_2 in v2.get_connections():
-            print(f"Vertix={v2.id}---Edge={v2.get_weight(neighbor_2)}----neighbor={neighbor_2.id}")
+            print(f"\tVertix={v2.id} ======> Edge={v2.get_weight(neighbor_2)} ======> neighbor={neighbor_2.id}")
+    print("\n\t >>>>>> Neighbors")
+    for v2 in M2:
+        print(f"\tM2.vert_dict[{v2.get_id()}]={M2.vert_dict[v2.get_id()]}")
 
 
 def cartesian_product(M1, M2, input):
     #TOdo: we just check to see if the input is an edge from the vertex in each graph,
     #if it is then we add it to our new graph
-    M = Graph()
+    pass
+"""     M = Graph()
     print("> >> >>> >>>> >>>>> >>>>>> {  M1  } <<<<<< <<<<< <<<< <<< << <")
     for v1 in M1:
         for neighbor in v1.get_connections():
             print(f"Vertix={v1.id}---Edge={v1.get_weight(neighbor)}----neighbor={neighbor.id}")
-    print("> >> >>> >>>> >>>>> >>>>>> {  M2  } <<<<<< <<<<< <<<< <<< << <")
-    for v2 in M2:
-        for neighbor_2 in v2.get_connections():
-            print(f"Vertix={v2.id}---Edge={v2.get_weight(neighbor_2)}----neighbor={neighbor_2.id}")
+            print("> >> >>> >>>> >>>>> >>>>>> {  M2  } <<<<<< <<<<< <<<< <<< << <")
+            for v2 in M2:
+                for neighbor_2 in v2.get_connections():
+                    #TODO: if edge to any neighbor == one of the input edges we add it to the new graph M
+                    print(f"Vertix={v2.id}---Edge={v2.get_weight(neighbor_2)}----neighbor={neighbor_2.id}")
+                    for a in input:
+                        if v1.get_weight(neighbor) == v2.get_weight(neighbor_2): """
         #neighbor, v1_l = v1.get_weight()
         #for v2 in M2:
         #    for symbol in input:
@@ -353,7 +385,7 @@ if __name__ == "__main__":
 
     if ALGO_TEST:
         test_equation = ["-", "3", "x1", "-", "0", "x2", "+", "4", "x3", "+", "17", "=", "0"]
-        my_Cmax = C_max(test_equation)
+        my_Cmax = get_C_max(test_equation)
         print(my_Cmax) # = 5
 
         #Generate input list
@@ -374,7 +406,12 @@ if __name__ == "__main__":
 
         M1 = build_graph(input_list, T2_test_1)
         M2 = build_graph(input_list, T2_test_2)
-        M = cartesian_product(M1, M2, input_list)
+        #M = cartesian_product(M1, M2, input_list)
+
+        print_graphs(M1, M2)
+
+        print(f"Test get_K_c of 0 ={get_K_c(0)}")
+
 
 
 
